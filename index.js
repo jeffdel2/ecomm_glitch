@@ -43,11 +43,6 @@ const { auth, requiresAuth } = require('express-openid-connect')
 const { Issuer } = require('openid-client')
 const { JWK } = require('node-jose')
 
-// add ons for demo.okta
-const TenantResolver = require('./tenantResolver')
-const axios = require('axios')
-const tr = new TenantResolver()
-
 var privateKey = process.env.PVT_KEY.replace(/\\n/g, "\n")
 var keystore = JWK.createKeyStore()
 var auth0Issuer
@@ -55,8 +50,6 @@ var client
 
 const responseType = 'code'
 const responseTypesWithToken = ['code id_token', 'code']
-
-console.log("main index code ",tr.tenants);
 
 const authConfig = {
 	secret: SESSION_SECRET,
@@ -74,6 +67,7 @@ const authConfig = {
 }
 
 console.log('testing auth config', authConfig)
+
 const app = express()
 app.use(cors)
 
@@ -101,10 +95,8 @@ app.use(
 	})
 )
 
-app.get('/', tr.resolveTenant(), async (req, res, next) => {
+app.get('/', async (req, res, next) => {
 	try {
-		console.log("base / ",tr);
-		console.log("base tr testing ",tr.tenants);
 		auth0Issuer = await Issuer.discover(`${BANK_ISSUER}`)
 		await keystore.add(privateKey, 'pem')
 
@@ -117,9 +109,10 @@ app.get('/', tr.resolveTenant(), async (req, res, next) => {
 			keystore.toJSON(true)
 		)
 
+		console.log('testing client', client)
+
 		res.render('home', {
-			//user: req.oidc && req.oidc.user, demoName: tr.getTenant(req.headers.host), tenantSettings: settings
-			user: req.oidc && req.oidc.user, demoName: tr.getTenant(req.headers.host)
+			user: req.oidc && req.oidc.user,
 		})
 	} catch (err) {
 		console.log(err)
