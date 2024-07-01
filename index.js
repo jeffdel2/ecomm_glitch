@@ -111,7 +111,7 @@ app.get('/', async (req, res, next) => {
 
 		console.log('testing client', client)
 
-		res.render('home', {
+		res.render('landing', {
 			user: req.oidc && req.oidc.user,
 		})
 	} catch (err) {
